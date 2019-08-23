@@ -1,0 +1,42 @@
+docker network create --driver overlay --subnet 10.0.0.0/20 --attachable party-swarm
+
+sudo sysctl -w net.ipv4.neigh.default.gc_thresh1=8096
+sudo sysctl -w net.ipv4.neigh.default.gc_thresh2=12288
+sudo sysctl -w net.ipv4.neigh.default.gc_thresh3=16384
+
+docker service create --replicas 500 --network party-swarm --update-parallelism 2 --name sonyflake -p 80:80 titpetric/sonyflake
+
+docker service create --replicas 300 --network party-swarm --update-parallelism 2 --name sonyflake -p 80:80 titpetric/sonyflake
+
+docker service create --replicas 1000 --network party-swarm --update-parallelism 2 --name sonyflake -p 80:80 titpetric/sonyflake
+
+demo plan
+1. create master image (big size)
+2. scale up it
+3. run test plan on multiple containers
+4. use alpine to make image size smaller
+5. scale up it
+6. run test plan on multiple containers
+
+1. run master only
+- start master
+	docker run -dit --name master jmmaster /bin/bash
+- go inside master
+	docker exec -it master bash
+- run test case
+	jmeter -n -t ./JMeterFiles/myvodds_testplan.jmx -l ./JMeterFiles/Test_Result.jtl
+- copy test result to local folder
+	docker cp master:/JMeterFiles/Test_Result.jtl ./results/master_Test_Result.jtl
+	
+2. docker swarm
+- create docker machine
+	docker-machine create --driver virtualbox <name>
+- connect to manager machine
+	docker-machine ssh <manager>
+- init swarm
+	docker swarm init --advertise-addr 192.168.99.101
+- join worker to swarm
+	connect to each worker and run the join command
+- swarm network on manager node
+	docker-machine ssh <manager>
+	docker network create --driver overlay --subnet 10.0.0.0/20 --attachable party-swarm
