@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  master:
+    image: jmeter-master
+    container_name: master
+    tty: true
+    networks:
+      - party-swarm
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+          constraints: [node.role == manager]  
+  slave:
+    image: jmeter-slave
+    networks:
+      - party-swarm
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == worker]
+        
+networks:
+  party-swarm:
+    
