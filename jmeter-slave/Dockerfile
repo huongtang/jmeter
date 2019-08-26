@@ -1,4 +1,4 @@
-FROM huong/base
+FROM huongtang/jmeter
 
 MAINTAINER huong.tang
 
